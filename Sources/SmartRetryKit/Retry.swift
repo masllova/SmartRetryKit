@@ -15,27 +15,27 @@ public struct Retry {
         
         for (index, baseDelay) in delays.enumerated() {
             do {
-                await log(alias, "🚀 Attempt \(index + 1)")
+                await log(alias, RetryResources.makeAttemptInfo(index: index + 1))
                 let result = try await operation()
                 
                 if let validate = validate {
                     if validate(result) {
-                        await log(alias, "✅ Success")
+                        await log(alias, RetryResources.success)
                         return result
                     } else {
-                        await log(alias, "⚠️ Validation failed")
+                        await log(alias, RetryResources.validationFailed)
                         lastError = RetryError.maxRetriesReached
                     }
                 } else {
-                    await log(alias, "✅ Success")
+                    await log(alias, RetryResources.success)
                     return result
                 }
             } catch {
                 if let retryIf = retryIf, !retryIf(error) {
-                    await log(alias, "🛑 Not retrying error: \(error)")
+                    await log(alias, RetryResources.makeNotRetryingError(error))
                     throw error
                 }
-                await log(alias, "❌ Error: \(error)")
+                await log(alias, RetryResources.makeError(error))
                 lastError = error
             }
             if index < delays.count - 1 {
@@ -46,14 +46,14 @@ public struct Retry {
                     delay += jitterValue
                 }
                 if delay > 0 {
-                    await log(alias, "🔁 Retry in \(format(delay))")
+                    await log(alias, RetryResources.makeRetryInfo(format(delay)))
                     try await sleep(seconds: delay)
                 } else {
-                    await log(alias, "🔁 Retry immediately")
+                    await log(alias, RetryResources.retryImmediately)
                 }
             }
         }
-        await log(alias, "🛑 Max retries reached")
+        await log(alias, RetryResources.maxRetries)
         throw lastError ?? RetryError.maxRetriesReached
     }
 }

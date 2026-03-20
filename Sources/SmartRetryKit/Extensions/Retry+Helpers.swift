@@ -9,7 +9,7 @@ extension Retry {
         let isEnabled = await RetryConfig.shared.getLogging()
         guard isEnabled else { return }
         
-        print("[Retry][\(alias ?? "request")] \(message)")
+        print(RetryResources.makeLog(alias: alias, message: message))
     }
     
     static func format(_ value: TimeInterval) -> String {
