@@ -1,8 +1,10 @@
 enum RetryResources {
     static let success = "Success"
     static let validationFailed = "Validation failed"
+    static let validationPassed = "Validation passed"
     static let maxRetries = "🛑 Max retries reached"
     static let retryImmediately = "🔁 Retry immediately"
+    static let failedWithRetry = "Validation failed → retry"
     
     static func makeLog(alias: String?, message: String) -> String {
         "[Retry][\(alias ?? "request")] \(message)"

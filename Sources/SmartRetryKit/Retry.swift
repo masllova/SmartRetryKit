@@ -17,17 +17,16 @@ public struct Retry {
             do {
                 await log(alias, RetryResources.makeAttemptInfo(index: index + 1))
                 let result = try await operation()
-                
+
                 if let validate = validate {
                     if validate(result) {
-                        await log(alias, RetryResources.success)
+                        await log(alias, RetryResources.validationPassed)
                         return result
                     } else {
-                        await log(alias, RetryResources.validationFailed)
-                        lastError = RetryError.maxRetriesReached
+                        await log(alias, RetryResources.failedWithRetry)
+                        continue
                     }
                 } else {
-                    await log(alias, RetryResources.success)
                     return result
                 }
             } catch {
