@@ -2,39 +2,51 @@ import Foundation
 
 public struct Retry {
     public static func run<T>(
-        delays: [TimeInterval],
+        alias: String? = nil,
+        strategy: RetryStrategy,
         operation: @escaping () async throws -> T,
         validate: ((T) -> Bool)? = nil
     ) async throws -> T {
+        
+        let delays = strategy.makeDelays()
+        
         var lastError: Error?
         
         for (index, delay) in delays.enumerated() {
             do {
-                print("🚀 Attempt \(index + 1)")
+                print(alias ?? "", "🚀 Attempt \(index + 1)")
+                
                 let result = try await operation()
                 
                 if let validate = validate {
                     if validate(result) {
-                        print("✅ Success on attempt \(index + 1)")
+                        print(alias ?? "", "✅ Success")
                         return result
                     } else {
-                        print("⚠️ Invalid result (validation failed)")
+                        print(alias ?? "", "⚠️ Validation failed")
                         lastError = RetryError.maxRetriesReached
                     }
                 } else {
-                    print("✅ Success on attempt \(index + 1)")
+                    print(alias ?? "", "✅ Success")
                     return result
                 }
+                
             } catch {
-                print("❌ Error on attempt \(index + 1): \(error)")
+                print(alias ?? "", "❌ Error: \(error)")
                 lastError = error
             }
+            
             if index < delays.count - 1 {
-                print("🔁 Retry in \(format(delay))")
-                try await sleep(seconds: delay)
+                if delay > 0 {
+                    print(alias ?? "", "🔁 Retry in \(format(delay))")
+                    try await sleep(seconds: delay)
+                } else {
+                    print(alias ?? "", "🔁 Retry immediately")
+                }
             }
         }
-        print("🛑 Max retries reached")
+        
+        print(alias ?? "", "🛑 Max retries reached")
         throw lastError ?? RetryError.maxRetriesReached
     }
 }
