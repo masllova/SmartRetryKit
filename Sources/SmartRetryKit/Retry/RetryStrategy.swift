@@ -29,4 +29,13 @@ public enum RetryStrategy {
             return Array(repeating: delay, count: 1000)
         }
     }
+    
+    var defaultJitter: Bool {
+        switch self {
+        case .exponentialBackoff, .untilSuccess:
+            return true
+        default:
+            return false
+        }
+    }
 }
